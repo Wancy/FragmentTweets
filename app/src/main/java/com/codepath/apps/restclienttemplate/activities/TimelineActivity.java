@@ -1,4 +1,4 @@
-package com.codepath.apps.restclienttemplate;
+package com.codepath.apps.restclienttemplate.activities;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,7 +8,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.codepath.apps.restclienttemplate.R;
+import com.codepath.apps.restclienttemplate.TweetAdapter;
+import com.codepath.apps.restclienttemplate.TwitterApp;
+import com.codepath.apps.restclienttemplate.TwitterClient;
+import com.codepath.apps.restclienttemplate.fragments.ComposeDialogFragment;
 import com.codepath.apps.restclienttemplate.models.Tweet;
+import com.codepath.apps.restclienttemplate.models.User;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
 import org.json.JSONArray;
@@ -19,23 +25,26 @@ import java.util.ArrayList;
 
 import cz.msebera.android.httpclient.Header;
 
+import static com.codepath.apps.restclienttemplate.R.string.tweet;
+
 public class TimelineActivity extends AppCompatActivity {
     private TwitterClient client;
     TweetAdapter tweetAdapter;
     ArrayList<Tweet> tweets;
     RecyclerView rvTweets;
+    User currentUser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timeline);
         client = TwitterApp.getRestClient();
-
+        currentUser = new User();
         rvTweets = (RecyclerView) findViewById(R.id.rvTweet);
         tweets = new ArrayList<>();
         tweetAdapter = new TweetAdapter(tweets);
         rvTweets.setLayoutManager(new LinearLayoutManager(this));
         rvTweets.setAdapter(tweetAdapter);
-        populateTimeline();
+        //populateTimeline();
     }
 
     // Inflate the menu; this adds items to the action bar if it is present.
@@ -54,7 +63,7 @@ public class TimelineActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfstatement
         if (id == R.id.compose) {
-            showComposeDialog();
+            getScreenName();
             return true;
         }
 
@@ -62,31 +71,20 @@ public class TimelineActivity extends AppCompatActivity {
     }
 
     public void showComposeDialog() {
-        ComposeDialogFragment editDialogFragment = ComposeDialogFragment.newInstance(params);
-        editDialogFragment.show(getSupportFragmentManager(), "compose_dialog");
+        ComposeDialogFragment composeDialogFragment = ComposeDialogFragment.newInstance(currentUser);
+        composeDialogFragment.show(getSupportFragmentManager(), "compose_dialog");
     }
 
     private void populateTimeline() {
         client.getHomeTimeline(1, new JsonHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                Log.d("TwitterClient", response.toString());
-            }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                //Log.d("TwitterClient", response.toString());
-                for (int i = 0; i < response.length(); i++) {
-                    Tweet tweet = null;
-                    try {
-                        tweet = Tweet.fromJSON(response.getJSONObject(i));
-                        tweets.add(tweet);
-                        tweetAdapter.notifyItemInserted(tweets.size() - 1);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-
+                try {
+                    tweets.addAll(Tweet.fromJSONArray(response));
+                    tweetAdapter.notifyDataSetChanged();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -102,6 +100,43 @@ public class TimelineActivity extends AppCompatActivity {
                 throwable.printStackTrace();
             }
 
+        });
+    }
+
+    private void getScreenName() {
+        client.getScreenName(new JsonHttpResponseHandler() {
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                Log.d("TwitterClient", response.toString());
+                try {
+                    getCurrentUser(response.getString("screen_name"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                Log.d("TwitterClient", errorResponse.toString());
+                throwable.printStackTrace();
+            }
+
+        });
+    }
+
+    private void getCurrentUser(String screenName) {
+        client.getCurrentUser(screenName, new JsonHttpResponseHandler() {
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                try {
+                    currentUser = User.fromJSON(response);
+                    showComposeDialog();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
                 Log.d("TwitterClient", errorResponse.toString());
