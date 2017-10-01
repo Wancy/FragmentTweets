@@ -13,8 +13,16 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.codepath.apps.restclienttemplate.R;
+import com.codepath.apps.restclienttemplate.TwitterClient;
 import com.codepath.apps.restclienttemplate.models.Tweet;
 import com.codepath.apps.restclienttemplate.models.User;
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import cz.msebera.android.httpclient.Header;
 
 
 public class ComposeDialogFragment extends DialogFragment{
@@ -25,11 +33,17 @@ public class ComposeDialogFragment extends DialogFragment{
     TextView tvName;
     MultiAutoCompleteTextView tvContent;
     User currentUser;
+    TwitterClient client;
 
-    public static ComposeDialogFragment newInstance(User user) {
+    public interface ComposeDialogListener{
+        void onFinishCompose(Tweet tweet);
+    }
+
+    public static ComposeDialogFragment newInstance(User user, TwitterClient client) {
 
         ComposeDialogFragment fragment = new ComposeDialogFragment();
         fragment.currentUser = user;
+        fragment.client = client;
         return fragment;
     }
 
@@ -60,9 +74,34 @@ public class ComposeDialogFragment extends DialogFragment{
             public void onClick(View view) {
                 String str = tvContent.getText().toString();
                 if (str == null || str.length() == 0) return;
-                Tweet newTweet = new Tweet();
-                newTweet.body = tvContent.getText().toString();
+                String body = tvContent.getText().toString();
+                tweet(body);
             }
+        });
+    }
+
+    private void tweet(String body) {
+        client.postTweet(body, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                try {
+                    Tweet newTweet = Tweet.fromJSON(response);
+                    ComposeDialogListener listener = (ComposeDialogListener) getActivity();
+                    listener.onFinishCompose(newTweet);
+                    dismiss();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                super.onFailure(statusCode, headers, throwable, errorResponse);
+            }
+
+
         });
     }
 

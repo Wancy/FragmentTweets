@@ -7,7 +7,10 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Toast;
 
+import com.codepath.apps.restclienttemplate.EndlessRecyclerViewScrollListener;
 import com.codepath.apps.restclienttemplate.R;
 import com.codepath.apps.restclienttemplate.TweetAdapter;
 import com.codepath.apps.restclienttemplate.TwitterApp;
@@ -25,14 +28,18 @@ import java.util.ArrayList;
 
 import cz.msebera.android.httpclient.Header;
 
+import static android.R.attr.max;
 import static com.codepath.apps.restclienttemplate.R.string.tweet;
 
-public class TimelineActivity extends AppCompatActivity {
+public class TimelineActivity extends AppCompatActivity implements ComposeDialogFragment.ComposeDialogListener{
     private TwitterClient client;
-    TweetAdapter tweetAdapter;
-    ArrayList<Tweet> tweets;
-    RecyclerView rvTweets;
-    User currentUser;
+    private TweetAdapter tweetAdapter;
+    private ArrayList<Tweet> tweets;
+    private RecyclerView rvTweets;
+    private User currentUser;
+    private static int count = 10;
+    private long maxId;
+    private EndlessRecyclerViewScrollListener scrollListener;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,10 +48,19 @@ public class TimelineActivity extends AppCompatActivity {
         currentUser = new User();
         rvTweets = (RecyclerView) findViewById(R.id.rvTweet);
         tweets = new ArrayList<>();
+        maxId = 0;
         tweetAdapter = new TweetAdapter(tweets);
-        rvTweets.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        rvTweets.setLayoutManager(linearLayoutManager);
+        scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                loadNextDataFromApi();
+            }
+        };
         rvTweets.setAdapter(tweetAdapter);
-        //populateTimeline();
+        rvTweets.addOnScrollListener(scrollListener);
+        populateTimeline();
     }
 
     // Inflate the menu; this adds items to the action bar if it is present.
@@ -71,12 +87,12 @@ public class TimelineActivity extends AppCompatActivity {
     }
 
     public void showComposeDialog() {
-        ComposeDialogFragment composeDialogFragment = ComposeDialogFragment.newInstance(currentUser);
+        ComposeDialogFragment composeDialogFragment = ComposeDialogFragment.newInstance(currentUser, client);
         composeDialogFragment.show(getSupportFragmentManager(), "compose_dialog");
     }
 
     private void populateTimeline() {
-        client.getHomeTimeline(1, new JsonHttpResponseHandler() {
+        client.getHomeTimeline(count, maxId, new JsonHttpResponseHandler() {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
@@ -86,12 +102,6 @@ public class TimelineActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                Log.d("TwitterClient", responseString);
-                throwable.printStackTrace();
             }
 
             @Override
@@ -143,5 +153,23 @@ public class TimelineActivity extends AppCompatActivity {
                 throwable.printStackTrace();
             }
         });
+    }
+
+    @Override
+    public void onFinishCompose(Tweet tweet) {
+        tweets.add(0, tweet);
+        tweetAdapter.notifyItemInserted(0);
+        scrollListener.resetState();
+    }
+
+    public void loadNextDataFromApi() {
+        // if there is tweet in the tweet array, get the last one's uid as the maxId
+        if (tweets.size() > 0) {
+            maxId = tweets.get(tweets.size() - 1).uid - 1;
+        }
+        Toast.makeText(getApplicationContext(), "Loading more tweets...", Toast.LENGTH_SHORT).show();
+
+        populateTimeline();
+
     }
 }

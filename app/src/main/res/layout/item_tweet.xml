@@ -29,4 +29,12 @@
         android:layout_below="@+id/tvUserName"
         android:layout_marginLeft="5dp"
         android:text="TextView" />
+
+    <TextView
+        android:id="@+id/tvTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/tvBody"
+        android:layout_alignParentEnd="true"
+        android:text="TextView" />
 </RelativeLayout>
