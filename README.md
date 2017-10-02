@@ -1,5 +1,7 @@
 # Project 3 - *SimpleTweet*
 
+Youtube: https://youtu.be/xrUcu8yCf2o
+
 **Name of your app** is an android app that allows a user to view his Twitter timeline and post a new tweet. The app utilizes [Twitter REST API](https://developer.twitter.com/en/docs/api-reference-index).
 
 Time spent: **10** hours spent in total
