@@ -54,6 +54,7 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
         holder.tvTime.setText(getRelativeTimeAgo(tweet.createdAt));
         try {
             holder.tvUserName.setText(tweet.user.getString("name"));
+            holder.tvName.setText(" @" + tweet.user.getString("screen_name"));
             Glide.with(context).load(tweet.user.getString("profile_image_url")).error(R.drawable.ic_launcher).into(holder.ivProfileImage);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -72,6 +73,7 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
         public TextView tvUserName;
         public TextView tvBody;
         public TextView tvTime;
+        public TextView tvName;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -79,6 +81,7 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
             tvUserName = (TextView) itemView.findViewById(R.id.tvUserName);
             tvBody = (TextView) itemView.findViewById(R.id.tvBody);
             tvTime = (TextView) itemView.findViewById(R.id.tvTime);
+            tvName = (TextView) itemView.findViewById(R.id.tvName);
         }
     }
 
