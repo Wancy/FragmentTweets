@@ -12,10 +12,14 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.codepath.apps.restclienttemplate.models.Tweet;
 
+import org.json.JSONException;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
+
+import static android.R.attr.name;
 
 
 public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> {
@@ -45,10 +49,15 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.ViewHolder> 
         Tweet tweet = mTweets.get(position);
 
         //populate the views according to this data
-        holder.tvUserName.setText(tweet.user.name);
+
         holder.tvBody.setText(tweet.body);
         holder.tvTime.setText(getRelativeTimeAgo(tweet.createdAt));
-        Glide.with(context).load(tweet.user.profileImageUrl).error(R.drawable.ic_launcher).into(holder.ivProfileImage);
+        try {
+            holder.tvUserName.setText(tweet.user.getString("name"));
+            Glide.with(context).load(tweet.user.getString("profile_image_url")).error(R.drawable.ic_launcher).into(holder.ivProfileImage);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

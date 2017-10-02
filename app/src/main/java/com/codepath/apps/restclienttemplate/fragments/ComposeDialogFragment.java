@@ -3,9 +3,12 @@ package com.codepath.apps.restclienttemplate.fragments;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.MultiAutoCompleteTextView;
@@ -34,6 +37,7 @@ public class ComposeDialogFragment extends DialogFragment{
     MultiAutoCompleteTextView tvContent;
     User currentUser;
     TwitterClient client;
+    TextView tvCount;
 
     public interface ComposeDialogListener{
         void onFinishCompose(Tweet tweet);
@@ -60,7 +64,27 @@ public class ComposeDialogFragment extends DialogFragment{
         tvName = (TextView) view.findViewById(R.id.tvBody);
         tvContent = (MultiAutoCompleteTextView) view.findViewById(R.id.tvContent);
         ivProfileMe = (ImageView) view.findViewById(R.id.ivProfileMe);
+        tvCount = (TextView) view.findViewById(R.id.tvCount);
         tvContent.requestFocus();
+        getDialog().getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        tvContent.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // this will show characters remaining
+                tvCount.setText(140 - s.toString().length() + "/140");
+            }
+        });
         Glide.with(view.getContext()).load(currentUser.profileImageUrl).error(R.drawable.ic_launcher).into(ivProfileMe);
         tvName.setText(currentUser.name);
         btnCancel.setOnClickListener(new View.OnClickListener() {

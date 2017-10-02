@@ -1,5 +1,9 @@
 package com.codepath.apps.restclienttemplate.activities;
 
+import android.app.Activity;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,17 +23,20 @@ import com.codepath.apps.restclienttemplate.fragments.ComposeDialogFragment;
 import com.codepath.apps.restclienttemplate.models.Tweet;
 import com.codepath.apps.restclienttemplate.models.User;
 import com.loopj.android.http.JsonHttpResponseHandler;
+import com.raizlabs.android.dbflow.config.FlowManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import cz.msebera.android.httpclient.Header;
 
 import static android.R.attr.max;
 import static com.codepath.apps.restclienttemplate.R.string.tweet;
+import static com.raizlabs.android.dbflow.config.FlowManager.getModelAdapter;
 
 public class TimelineActivity extends AppCompatActivity implements ComposeDialogFragment.ComposeDialogListener{
     private TwitterClient client;
@@ -60,7 +67,16 @@ public class TimelineActivity extends AppCompatActivity implements ComposeDialog
         };
         rvTweets.setAdapter(tweetAdapter);
         rvTweets.addOnScrollListener(scrollListener);
-        populateTimeline();
+
+        if (!isNetworkAvailable() || !isOnline()) {
+            Toast.makeText(getApplicationContext(), "Please check your network...", Toast.LENGTH_SHORT);
+            tweets.addAll(Tweet.recentTweets());
+            tweetAdapter.notifyItemRangeInserted(0, tweets.size());
+        } else {
+            populateTimeline();
+
+        }
+
     }
 
     // Inflate the menu; this adds items to the action bar if it is present.
@@ -99,6 +115,11 @@ public class TimelineActivity extends AppCompatActivity implements ComposeDialog
                 try {
                     tweets.addAll(Tweet.fromJSONArray(response));
                     tweetAdapter.notifyDataSetChanged();
+                    for (int i = 0; i < tweets.size(); i++) {
+                        boolean exist = FlowManager.getModelAdapter(Tweet.class).save(tweets.get(i));
+                        // if the data already exist in db
+                        if (exist) break;
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -171,5 +192,24 @@ public class TimelineActivity extends AppCompatActivity implements ComposeDialog
 
         populateTimeline();
 
+    }
+
+    public boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        boolean value = activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+        return value;
+    }
+
+    public boolean isOnline() {
+        Runtime runtime = Runtime.getRuntime();
+        try {
+            Process ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
+            int     exitValue = ipProcess.waitFor();
+            return (exitValue == 0);
+        } catch (IOException e)          { e.printStackTrace(); }
+        catch (InterruptedException e) { e.printStackTrace(); }
+        return false;
     }
 }

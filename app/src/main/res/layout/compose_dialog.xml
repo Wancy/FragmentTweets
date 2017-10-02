@@ -43,8 +43,17 @@
         android:hint="@string/hint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/ivProfileMe"
         android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/tvCount" />
+
+    <TextView
+        android:id="@+id/tvCount"
+        android:textSize="18dp"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:layout_below="@+id/ivProfileMe"
+        android:text="@string/wordLeft"
+        android:layout_alignEnd="@+id/btnCancel"
+        android:layout_alignParentStart="true" />
 </RelativeLayout>

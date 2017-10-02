@@ -10,5 +10,6 @@
     <string name="cancel">Cancel</string>
     <string name="tweet">Tweet</string>
     <string name="hint">What is happening?</string>
+    <string name="wordLeft">140/140</string>
 
 </resources>
