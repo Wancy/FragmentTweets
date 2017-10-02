@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.codepath.apps.restclienttemplate.R.string.tweet;
@@ -25,7 +26,7 @@ public class Tweet extends BaseModel{
     @Column
     public String body;
 
-    @PrimaryKey(autoincrement = true)
+    @PrimaryKey
     @Column
     public long uid;
 
@@ -65,7 +66,12 @@ public class Tweet extends BaseModel{
 
     public static List<Tweet> recentTweets() {
         List<Tweet> list = new Select().from(Tweet.class).limit(300).queryList();
-        Collections.reverse(list);
+        Collections.sort(list, new Comparator<Tweet>() {
+            @Override
+            public int compare(Tweet o1, Tweet o2) {
+                return (int) (o2.uid - o1.uid);
+            }
+        });
         return list;
     }
 }

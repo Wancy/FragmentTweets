@@ -116,9 +116,8 @@ public class TimelineActivity extends AppCompatActivity implements ComposeDialog
                     tweets.addAll(Tweet.fromJSONArray(response));
                     tweetAdapter.notifyDataSetChanged();
                     for (int i = 0; i < tweets.size(); i++) {
-                        boolean exist = FlowManager.getModelAdapter(Tweet.class).save(tweets.get(i));
-                        // if the data already exist in db
-                        if (exist) break;
+                        FlowManager.getModelAdapter(Tweet.class).save(tweets.get(i));
+
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
