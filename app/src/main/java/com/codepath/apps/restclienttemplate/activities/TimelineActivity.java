@@ -43,7 +43,7 @@ import static android.R.attr.max;
 import static com.codepath.apps.restclienttemplate.R.string.tweet;
 import static com.raizlabs.android.dbflow.config.FlowManager.getModelAdapter;
 
-public class TimelineActivity extends AppCompatActivity implements ComposeDialogFragment.ComposeDialogListener {
+public class TimelineActivity extends AppCompatActivity implements TweetsListFragment.TweetSelectedListener, ComposeDialogFragment.ComposeDialogListener {
 
     private TweetsListFragment fragmentTweetsList;
 
@@ -100,5 +100,11 @@ public class TimelineActivity extends AppCompatActivity implements ComposeDialog
         // launch the profile view
         Intent i = new Intent(this, ProfileActivity.class);
         startActivity(i);
+    }
+
+    @Override
+    public void onTweetSelected(Tweet tweet) {
+
+        Toast.makeText(this, tweet.body, Toast.LENGTH_SHORT).show();
     }
 }

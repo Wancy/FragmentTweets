@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Toast;
 
 import com.codepath.apps.restclienttemplate.EndlessRecyclerViewScrollListener;
@@ -29,11 +30,16 @@ import java.util.ArrayList;
  * Created by Wancy on 10/3/17.
  */
 
-public class TweetsListFragment extends Fragment {
+public class TweetsListFragment extends Fragment implements TweetAdapter.TweetAdapterListener{
     TweetAdapter tweetAdapter;
     ArrayList<Tweet> tweets;
     RecyclerView rvTweets;
     EndlessRecyclerViewScrollListener scrollListener;
+
+    public interface TweetSelectedListener {
+        //handle the tweet selection
+        public void onTweetSelected(Tweet tweet);
+    }
 
     @Nullable
     @Override
@@ -41,7 +47,7 @@ public class TweetsListFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragments_tweets_list, container, false);
         rvTweets = (RecyclerView) v.findViewById(R.id.rvTweet);
         tweets = new ArrayList<>();
-        tweetAdapter = new TweetAdapter(tweets);
+        tweetAdapter = new TweetAdapter(tweets, this);
         rvTweets.setLayoutManager(new LinearLayoutManager(getContext()));
 
         rvTweets.setAdapter(tweetAdapter);
@@ -63,4 +69,11 @@ public class TweetsListFragment extends Fragment {
         }
     }
 
+
+    @Override
+    public void onItemSelected(View view, int position) {
+        Tweet tweet = tweets.get(position);
+        //Toast.makeText(getContext(), tweet.body, Toast.LENGTH_SHORT).show();
+        ((TweetSelectedListener) getActivity()).onTweetSelected(tweet);
+    }
 }
