@@ -2,8 +2,11 @@ package com.codepath.apps.restclienttemplate.activities;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,6 +23,8 @@ import com.codepath.apps.restclienttemplate.TweetAdapter;
 import com.codepath.apps.restclienttemplate.TwitterApp;
 import com.codepath.apps.restclienttemplate.TwitterClient;
 import com.codepath.apps.restclienttemplate.fragments.ComposeDialogFragment;
+import com.codepath.apps.restclienttemplate.fragments.TweetsListFragment;
+import com.codepath.apps.restclienttemplate.fragments.TweetsPagerAdapter;
 import com.codepath.apps.restclienttemplate.models.Tweet;
 import com.codepath.apps.restclienttemplate.models.User;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -38,55 +43,32 @@ import static android.R.attr.max;
 import static com.codepath.apps.restclienttemplate.R.string.tweet;
 import static com.raizlabs.android.dbflow.config.FlowManager.getModelAdapter;
 
-public class TimelineActivity extends AppCompatActivity implements ComposeDialogFragment.ComposeDialogListener{
-    private TwitterClient client;
-    private TweetAdapter tweetAdapter;
-    private ArrayList<Tweet> tweets;
-    private RecyclerView rvTweets;
-    private User currentUser;
-    private static int count = 10;
-    private long maxId;
-    private EndlessRecyclerViewScrollListener scrollListener;
+public class TimelineActivity extends AppCompatActivity implements ComposeDialogFragment.ComposeDialogListener {
+
+    private TweetsListFragment fragmentTweetsList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timeline);
-        client = TwitterApp.getRestClient();
-        currentUser = new User();
-        rvTweets = (RecyclerView) findViewById(R.id.rvTweet);
-        tweets = new ArrayList<>();
-        maxId = 0;
-        tweetAdapter = new TweetAdapter(tweets);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        rvTweets.setLayoutManager(linearLayoutManager);
-        scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
-            @Override
-            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
-                loadNextDataFromApi();
-            }
-        };
-        rvTweets.setAdapter(tweetAdapter);
-        rvTweets.addOnScrollListener(scrollListener);
 
-        if (!isNetworkAvailable() || !isOnline()) {
-            Toast.makeText(getApplicationContext(), "Please check your network...", Toast.LENGTH_SHORT);
-            tweets.addAll(Tweet.recentTweets());
-            tweetAdapter.notifyItemRangeInserted(0, tweets.size());
-        } else {
-            populateTimeline();
-
-        }
-
+        // get the  view pager
+        ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
+        // set the adapter for the pager
+        viewPager.setAdapter(new TweetsPagerAdapter(getSupportFragmentManager(), this));
+        // setup the Tablayout to use the view pager
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
+        tabLayout.setupWithViewPager(viewPager);
     }
 
     // Inflate the menu; this adds items to the action bar if it is present.
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.action_bar, menu);
+        getMenuInflater().inflate(R.menu.menu_timeline, menu);
         return true;
     }
 
-    @Override
+   /* @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -100,115 +82,23 @@ public class TimelineActivity extends AppCompatActivity implements ComposeDialog
         }
 
         return super.onOptionsItemSelected(item);
-    }
+    }*/
 
-    public void showComposeDialog() {
-        ComposeDialogFragment composeDialogFragment = ComposeDialogFragment.newInstance(currentUser, client);
-        composeDialogFragment.show(getSupportFragmentManager(), "compose_dialog");
-    }
 
-    private void populateTimeline() {
-        client.getHomeTimeline(count, maxId, new JsonHttpResponseHandler() {
 
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                try {
-                    tweets.addAll(Tweet.fromJSONArray(response));
-                    tweetAdapter.notifyDataSetChanged();
-                    for (int i = 0; i < tweets.size(); i++) {
-                        FlowManager.getModelAdapter(Tweet.class).save(tweets.get(i));
 
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
 
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
-                Log.d("TwitterClient", errorResponse.toString());
-                throwable.printStackTrace();
-            }
-
-        });
-    }
-
-    private void getScreenName() {
-        client.getScreenName(new JsonHttpResponseHandler() {
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                Log.d("TwitterClient", response.toString());
-                try {
-                    getCurrentUser(response.getString("screen_name"));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                Log.d("TwitterClient", errorResponse.toString());
-                throwable.printStackTrace();
-            }
-
-        });
-    }
-
-    private void getCurrentUser(String screenName) {
-        client.getCurrentUser(screenName, new JsonHttpResponseHandler() {
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                try {
-                    currentUser = User.fromJSON(response);
-                    showComposeDialog();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                Log.d("TwitterClient", errorResponse.toString());
-                throwable.printStackTrace();
-            }
-        });
-    }
 
     @Override
     public void onFinishCompose(Tweet tweet) {
-        tweets.add(0, tweet);
+        /*tweets.add(0, tweet);
         tweetAdapter.notifyItemInserted(0);
-        scrollListener.resetState();
+        scrollListener.resetState();*/
     }
 
-    public void loadNextDataFromApi() {
-        // if there is tweet in the tweet array, get the last one's uid as the maxId
-        if (tweets.size() > 0) {
-            maxId = tweets.get(tweets.size() - 1).uid - 1;
-        }
-        Toast.makeText(getApplicationContext(), "Loading more tweets...", Toast.LENGTH_SHORT).show();
-
-        populateTimeline();
-
-    }
-
-    public boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        boolean value = activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
-        return value;
-    }
-
-    public boolean isOnline() {
-        Runtime runtime = Runtime.getRuntime();
-        try {
-            Process ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
-            int     exitValue = ipProcess.waitFor();
-            return (exitValue == 0);
-        } catch (IOException e)          { e.printStackTrace(); }
-        catch (InterruptedException e) { e.printStackTrace(); }
-        return false;
+    public void onProfileView(MenuItem item) {
+        // launch the profile view
+        Intent i = new Intent(this, ProfileActivity.class);
+        startActivity(i);
     }
 }

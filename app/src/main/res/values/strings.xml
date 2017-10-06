@@ -11,5 +11,9 @@
     <string name="tweet">Tweet</string>
     <string name="hint">What is happening?</string>
     <string name="wordLeft">140/140</string>
+    <string name="name">Name</string>
+    <string name="tagline">TagLine</string>
+    <string name="followers">Followers</string>
+    <string name="following">Following</string>
 
 </resources>

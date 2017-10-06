@@ -79,15 +79,33 @@ public class TwitterClient extends OAuthBaseClient {
 		client.post(apiUrl, params, handler);
 	}
 
-	public void getScreenName(AsyncHttpResponseHandler handler) {
-        String apiUrl = getApiUrl("account/settings.json");
+    public void getCurrentUser(AsyncHttpResponseHandler handler) {
+        String apiUrl = getApiUrl("account/verify_credentials.json");
         client.get(apiUrl, handler);
     }
 
-    public void getCurrentUser(String screenName, AsyncHttpResponseHandler handler) {
-        String apiUrl = getApiUrl("users/show.json");
-        RequestParams params = new RequestParams();
-        params.put("screen_name", screenName);
-        client.get(apiUrl, params, handler);
-    }
+    public void getUserTimeline(String screenName, int count, long maxId, AsyncHttpResponseHandler handler) {
+		String apiUrl = getApiUrl("statuses/user_timeline.json");
+		RequestParams params = new RequestParams();
+		params.put("count", count);
+		params.put("screen_name", screenName);
+		if (maxId != 0) {
+			params.put("max_id", maxId);
+		} else {
+			params.put("since_id", 1);
+		}
+		client.get(apiUrl, params, handler);
+	}
+
+    public void getMentionsTimeline(int count, long maxId, AsyncHttpResponseHandler handler) {
+		String apiUrl = getApiUrl("statuses/mentions_timeline.json");
+		RequestParams params = new RequestParams();
+		params.put("count", count);
+		if (maxId != 0) {
+			params.put("max_id", maxId);
+		} else {
+			params.put("since_id", 1);
+		}
+		client.get(apiUrl, params, handler);
+	}
 }
