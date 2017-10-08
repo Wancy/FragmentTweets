@@ -1,7 +1,7 @@
 package com.codepath.apps.restclienttemplate.models;
 
 
-import com.codepath.apps.restclienttemplate.MyDatabase;
+import com.codepath.apps.restclienttemplate.utils.MyDatabase;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
@@ -13,12 +13,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
-import static com.codepath.apps.restclienttemplate.R.string.tweet;
 
 
 @Table(database = MyDatabase.class)

@@ -6,6 +6,13 @@
         android:id="@+id/miProfile"
         android:icon="@drawable/ic_person_white_24dp"
         android:onClick="onProfileView"
-        android:title="Item"
-        app:showAsAction="ifRoom" />
+        android:title="Profile"
+        app:showAsAction="always|collapseActionView" />
+
+    <item
+        android:id="@+id/miCompose"
+        android:icon="@drawable/ic_edit_white_24dp"
+        android:onClick="onCompose"
+        android:title="Compose"
+        app:showAsAction="always|collapseActionView" />
 </menu>

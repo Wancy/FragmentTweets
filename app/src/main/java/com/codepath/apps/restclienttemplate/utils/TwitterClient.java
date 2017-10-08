@@ -1,7 +1,8 @@
-package com.codepath.apps.restclienttemplate;
+package com.codepath.apps.restclienttemplate.utils;
 
 import android.content.Context;
 
+import com.codepath.apps.restclienttemplate.R;
 import com.codepath.oauth.OAuthBaseClient;
 import com.github.scribejava.apis.FlickrApi;
 import com.github.scribejava.apis.TwitterApi;
@@ -77,6 +78,13 @@ public class TwitterClient extends OAuthBaseClient {
 		RequestParams params = new RequestParams();
 		params.put("status", body);
 		client.post(apiUrl, params, handler);
+	}
+
+	public  void getUserProfile(String screen_name, AsyncHttpResponseHandler handler) {
+		String apiUrl = getApiUrl("users/show.json");
+		RequestParams params = new RequestParams();
+		params.put("screen_name", screen_name);
+		client.get(apiUrl, params, handler);
 	}
 
     public void getCurrentUser(AsyncHttpResponseHandler handler) {

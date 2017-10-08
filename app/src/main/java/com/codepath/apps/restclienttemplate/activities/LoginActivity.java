@@ -5,8 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.codepath.apps.restclienttemplate.R;
-import com.codepath.apps.restclienttemplate.TwitterClient;
-import com.codepath.apps.restclienttemplate.activities.TimelineActivity;
+import com.codepath.apps.restclienttemplate.utils.TwitterClient;
 import com.codepath.oauth.OAuthLoginActionBarActivity;
 
 

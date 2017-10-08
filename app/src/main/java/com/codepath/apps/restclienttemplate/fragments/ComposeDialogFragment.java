@@ -16,12 +16,13 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.codepath.apps.restclienttemplate.R;
-import com.codepath.apps.restclienttemplate.TwitterClient;
+import com.codepath.apps.restclienttemplate.utils.TwitterApp;
+import com.codepath.apps.restclienttemplate.utils.TwitterClient;
+import com.codepath.apps.restclienttemplate.activities.TimelineActivity;
 import com.codepath.apps.restclienttemplate.models.Tweet;
 import com.codepath.apps.restclienttemplate.models.User;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,20 +36,11 @@ public class ComposeDialogFragment extends DialogFragment{
     ImageView ivProfileMe;
     TextView tvName;
     MultiAutoCompleteTextView tvContent;
-    User currentUser;
     TwitterClient client;
     TextView tvCount;
 
     public interface ComposeDialogListener{
         void onFinishCompose(Tweet tweet);
-    }
-
-    public static ComposeDialogFragment newInstance(User user, TwitterClient client) {
-
-        ComposeDialogFragment fragment = new ComposeDialogFragment();
-        fragment.currentUser = user;
-        fragment.client = client;
-        return fragment;
     }
 
     @Nullable
@@ -59,6 +51,7 @@ public class ComposeDialogFragment extends DialogFragment{
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        client = TwitterApp.getRestClient();
         btnCancel = (Button) view.findViewById(R.id.btnCancel);
         btnTweet = (Button) view.findViewById(R.id.btnTweet);
         tvName = (TextView) view.findViewById(R.id.tvBody);
@@ -85,8 +78,26 @@ public class ComposeDialogFragment extends DialogFragment{
                 tvCount.setText(140 - s.toString().length() + "/140");
             }
         });
-        Glide.with(view.getContext()).load(currentUser.profileImageUrl).error(R.drawable.ic_launcher).into(ivProfileMe);
-        tvName.setText(currentUser.name);
+
+        client.getCurrentUser(new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                try {
+                    User currentUser = User.fromJSON(response);
+                    Glide.with(getContext()).load(currentUser.profileImageUrl).error(R.drawable.ic_launcher).into(ivProfileMe);
+                    tvName.setText(currentUser.name);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                super.onFailure(statusCode, headers, throwable, errorResponse);
+            }
+        });
+
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -110,7 +121,8 @@ public class ComposeDialogFragment extends DialogFragment{
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 try {
                     Tweet newTweet = Tweet.fromJSON(response);
-                    ComposeDialogListener listener = (ComposeDialogListener) getActivity();
+                    TimelineActivity listener = (TimelineActivity) getActivity();
+
                     listener.onFinishCompose(newTweet);
                     dismiss();
                 } catch (JSONException e) {

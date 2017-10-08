@@ -4,8 +4,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.codepath.apps.restclienttemplate.TwitterApp;
-import com.codepath.apps.restclienttemplate.TwitterClient;
+import com.codepath.apps.restclienttemplate.utils.TwitterApp;
+import com.codepath.apps.restclienttemplate.utils.TwitterClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
 import org.json.JSONArray;
@@ -18,8 +18,6 @@ import cz.msebera.android.httpclient.Header;
 
 public class UserTimelineFragment extends TweetsListFragment {
     TwitterClient client;
-    private static int count = 10;
-    private long maxId = 0;
 
     public static UserTimelineFragment newInstance(String screenName) {
         UserTimelineFragment userTimelineFragment = new UserTimelineFragment();
@@ -33,10 +31,10 @@ public class UserTimelineFragment extends TweetsListFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         client = TwitterApp.getRestClient();
-        populateTimeline();
     }
 
-    private void populateTimeline() {
+    @Override
+    public void populateTimeline() {
         String screenName = getArguments().getString("screen_name");
         client.getUserTimeline(screenName, count, maxId, new JsonHttpResponseHandler() {
 

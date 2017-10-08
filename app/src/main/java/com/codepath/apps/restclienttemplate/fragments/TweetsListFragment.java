@@ -11,12 +11,11 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Toast;
 
 import com.codepath.apps.restclienttemplate.EndlessRecyclerViewScrollListener;
 import com.codepath.apps.restclienttemplate.R;
-import com.codepath.apps.restclienttemplate.TweetAdapter;
+import com.codepath.apps.restclienttemplate.adapters.TweetAdapter;
 import com.codepath.apps.restclienttemplate.models.Tweet;
 import com.raizlabs.android.dbflow.config.FlowManager;
 
@@ -26,15 +25,14 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.util.ArrayList;
 
-/**
- * Created by Wancy on 10/3/17.
- */
 
-public class TweetsListFragment extends Fragment implements TweetAdapter.TweetAdapterListener{
+public class TweetsListFragment extends Fragment implements TweetAdapter.TweetAdapterListener {
     TweetAdapter tweetAdapter;
     ArrayList<Tweet> tweets;
     RecyclerView rvTweets;
     EndlessRecyclerViewScrollListener scrollListener;
+    long maxId = 0;
+    static int count = 10;
 
     public interface TweetSelectedListener {
         //handle the tweet selection
@@ -48,10 +46,26 @@ public class TweetsListFragment extends Fragment implements TweetAdapter.TweetAd
         rvTweets = (RecyclerView) v.findViewById(R.id.rvTweet);
         tweets = new ArrayList<>();
         tweetAdapter = new TweetAdapter(tweets, this);
-        rvTweets.setLayoutManager(new LinearLayoutManager(getContext()));
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        rvTweets.setLayoutManager(linearLayoutManager);
 
         rvTweets.setAdapter(tweetAdapter);
-        //rvTweets.addOnScrollListener(scrollListener);
+        scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                loadNextDataFromApi();
+            }
+        };
+        rvTweets.addOnScrollListener(scrollListener);
+
+        if (!isNetworkAvailable() || !isOnline()) {
+            Toast.makeText(getContext(), "Please check your network...", Toast.LENGTH_SHORT);
+            tweets.addAll(Tweet.recentTweets());
+            tweetAdapter.notifyItemRangeInserted(0, tweets.size());
+        } else {
+            populateTimeline();
+
+        }
 
         return v;
     }
@@ -69,11 +83,42 @@ public class TweetsListFragment extends Fragment implements TweetAdapter.TweetAd
         }
     }
 
+    public void loadNextDataFromApi() {
+        // if there is tweet in the tweet array, get the last one's uid as the maxId
+        if (tweets.size() > 0) {
+            maxId = tweets.get(tweets.size() - 1).uid - 1;
+        }
+        Toast.makeText(getContext(), "Loading more tweets...", Toast.LENGTH_SHORT).show();
+
+        populateTimeline();
+
+    }
+
+    public void populateTimeline() {}
 
     @Override
     public void onItemSelected(View view, int position) {
         Tweet tweet = tweets.get(position);
         //Toast.makeText(getContext(), tweet.body, Toast.LENGTH_SHORT).show();
         ((TweetSelectedListener) getActivity()).onTweetSelected(tweet);
+    }
+
+    public boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        boolean value = activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+        return value;
+    }
+
+    public boolean isOnline() {
+        Runtime runtime = Runtime.getRuntime();
+        try {
+            Process ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
+            int exitValue = ipProcess.waitFor();
+            return (exitValue == 0);
+        } catch (IOException e)          { e.printStackTrace(); }
+        catch (InterruptedException e) { e.printStackTrace(); }
+        return false;
     }
 }
