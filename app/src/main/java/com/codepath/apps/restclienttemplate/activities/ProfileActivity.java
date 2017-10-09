@@ -3,6 +3,8 @@ package com.codepath.apps.restclienttemplate.activities;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -19,7 +21,7 @@ import org.json.JSONObject;
 
 import cz.msebera.android.httpclient.Header;
 
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends TimelineActivity {
     TwitterClient client;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +29,8 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
 
         String screenName = getIntent().getStringExtra("screen_name");
-
+        Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
+        setSupportActionBar(toolbar);
         //create the user fragment
         UserTimelineFragment userTimelineFragment = UserTimelineFragment.newInstance(screenName);
 
@@ -78,6 +81,7 @@ public class ProfileActivity extends AppCompatActivity {
                 }
             });
         }
+
     }
 
     public void populateUserHeadline(User user) {
@@ -96,4 +100,12 @@ public class ProfileActivity extends AppCompatActivity {
 
         Glide.with(this).load(user.profileImageUrl).into(ivProfileImage);
     }
+
+    // Inflate the menu; this adds items to the action bar if it is present.
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_timeline, menu);
+        return true;
+    }
+
 }

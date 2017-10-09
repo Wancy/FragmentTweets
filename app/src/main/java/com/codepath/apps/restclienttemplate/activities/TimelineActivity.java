@@ -20,6 +20,7 @@ import org.json.JSONException;
 
 public class TimelineActivity extends AppCompatActivity implements TweetsListFragment.TweetSelectedListener, ComposeDialogFragment.ComposeDialogListener {
     private TweetsPagerAdapter tweetsPagerAdapter;
+    Toolbar toolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,7 +35,7 @@ public class TimelineActivity extends AppCompatActivity implements TweetsListFra
         TabLayout tabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
         tabLayout.setupWithViewPager(viewPager);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.tool_bar);
         setSupportActionBar(toolbar);
 
     }
